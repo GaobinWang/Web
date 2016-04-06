@@ -1,0 +1,87 @@
+###服务器上的环境配置
+#安装nginx服务器
+
+#安装php7
+sudo  yum remove php* php-common  #删除当前环境下的php
+yum search php7  #搜索资源
+sudo yum install php70w-fpm   #找到相应的资源，并安装（php70w-fpm.x86_64 : PHP FastCGI Process Manager）（此处有疑问）
+sudo php-fpm  #启动php服务
+#接下来在/usr/share/nginx/html下建立index.php文件，输入<?php phpinfo(); ?>，则访问IP地址即可访问PHP信息的网页
+#（实际上index.html和index.php谁为默认网页，是可以调整的）
+
+#下面为网络教程中配置php7的方法
+cat /etc/centos-release  #查看Centos版本号
+yum remove php* php-common #删除之前的php版本
+rpm -Uvh https://mirror.webtatic.com/yum/el7/webtatic-release.rpm    #rpm安装php相应的yum源
+yum install php70w  #直接yum安装php7
+php -v  #查看php7的版本
+systemctl restart httpd.service  #重启Apache，查看phpinfo
+#rpm systemctl 两个命令
+
+
+#Centos7下安装mysql
+#CentOS 7的yum源中貌似没有正常安装mysql时的mysql-sever文件，需要去官网上下载
+wget http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm
+rpm -ivh mysql-community-release-el7-5.noarch.rpm
+yum install mysql-community-server  #安装
+service mysqld restart  #安装后重启mysql
+#设置密码
+mysql -uroot  
+mysql> set password for ‘root’@‘localhost’ = password('mypasswd');
+mysql> exit
+#远程授权连接mysql
+mysql>GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'mypassword' WITH GRANT OPTION;
+mysql>FLUSH   PRIVILEGES;
+
+sudo nginx -s reload  #重新启动nginx服务
+
+
+
+#PHP框架的配置：YII2（Windows下）
+Step1:安装composer（PHP框架的管理工具）
+#安装composer
+#到https://getcomposer.org/download/ 的Manual Download中下载最新版本的composer.phar
+#将composer.phar文件放在与php.exe文件的同级目录下
+#在composer.phar同级目录下新建composer.bat，并在里面写：
+@ECHO OFF
+php "%~dp0composer.phar" %*
+
+#在命令行中输入：
+composer -v显示版本号
+
+Step2：利用composer下载安装yii2
+composer self-update  #更新composer为最新版本
+#切换到一个Web可以访问的目录
+composer global require "fxp/composer-asset-plugin:~1.0.0"
+composer create-project --prefer-dist yiisoft/yii2-app-basic basic
+composer create-project --prefer-dist --stability=dev yiisoft/yii2-app-basic basic  #安装最新开发版本
+#在安装的过程中，会需要输入Github账号，比如出现让你输入Tokens的时候，
+#你可以将https://github.com/settings/tokens/new?scopes=repo&description=Composer+ on+PC-201512201956+2016-03-23+0850
+#输入到浏览器中，登录github并将相应的Tokens复制，输入到命令行中，即可完成安装。
+
+
+
+
+ps：一般的网站开发过程是，在本地将网站开发好，在上传到服务器；
+也就是说，在使用yii2框架的时候，在本地D:\XAMPP2\htdocs\basic目录下，将网站配置好，然后将basic目录下的文件，都上传到服务器中/usr/share/nginx/html目录下即可访问
+当然，前提也是服务器上的各项环境都要配置好（nginx和php7是必须配置的，而yii2需要在服务器上配置好么）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
